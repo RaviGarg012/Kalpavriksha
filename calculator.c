@@ -4,40 +4,40 @@
 #include <stdlib.h>
 
 // Helper Functions
-int getPrecedence(char op)
+int getPrecedence(char operator)
 {
-  if (op == '*' || op == '/')
+  if (operator == '*' || operator == '/')
   {
     return 2;
   }
-  if (op == '+' || op == '-')
+  if (operator == '+' || operator == '-')
   {
     return 1;
   }
   return 0;
 }
 
-int applyOperation(int a, int b, char op, int *result, int *error)
+int applyOperation(int first, int second, char operator, int *result, int *error)
 {
-  switch (op)
+  switch (operator)
   {
   case '+':
-    *result = a + b;
+    *result = first + second;
     break;
   case '-':
-    *result = a - b;
+    *result = first - second;
     break;
   case '*':
-    *result = a * b;
+    *result = first * second;
     break;
   case '/':
-    if (b == 0)
+    if (second == 0)
     {
       printf("Error: Division by zero.\n");
       *error = 1;
       return 0;
     }
-    *result = a / b;
+    *result = first / second;
     break;
   }
   return 1;
@@ -51,8 +51,8 @@ void evaluateExpression(const char *expression)
   int values_top = -1;
   int ops_top = -1;
   int error = 0;
-
-  for (int i = 0; i < strlen(expression); i++)
+  int len = strlen(expression);
+  for (int i = 0; i < len; i++)
   {
     // Skip whitespace
     if (isspace(expression[i]))
@@ -63,7 +63,7 @@ void evaluateExpression(const char *expression)
     if (isdigit(expression[i]))
     {
       int val = 0;
-      while (i < strlen(expression) && isdigit(expression[i]))
+      while (i < len && isdigit(expression[i]))
       {
         val = (val * 10) + (expression[i] - '0');
         i++;
