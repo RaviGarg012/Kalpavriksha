@@ -46,56 +46,60 @@ int applyOperation(int first, int second, char operator, int *result, int *error
 // Evaluation Function
 void evaluateExpression(const char *expression)
 {
-  int values[100];
-  char ops[100];
-  int values_top = -1;
-  int ops_top = -1;
+  int valueStack[100];
+  char operatorStack[100];
+  int valueStackTop = -1;
+  int operatorStackTop = -1;
   int error = 0;
-  int len = strlen(expression);
-  for (int i = 0; i < len; i++)
+  int expressionLength = strlen(expression);
+
+  for (int expressionIndex = 0; expressionIndex < expressionLength; expressionIndex++)
   {
     // Skip whitespace
-    if (isspace(expression[i]))
+    if (isspace(expression[expressionIndex]))
     {
       continue;
     }
 
-    if (isdigit(expression[i]))
+    // If the character is a digit, parse the full number
+    if (isdigit(expression[expressionIndex]))
     {
-      int val = 0;
-      while (i < len && isdigit(expression[i]))
+      int currentValue = 0;
+      while (expressionIndex < expressionLength && isdigit(expression[expressionIndex]))
       {
-        val = (val * 10) + (expression[i] - '0');
-        i++;
+        currentValue = (currentValue * 10) + (expression[expressionIndex] - '0');
+        expressionIndex++;
       }
-      values[++values_top] = val;
-      i--;
+      valueStack[++valueStackTop] = currentValue;
+      expressionIndex--; // Correct for the extra increment in the inner loop
     }
-
-    else if (expression[i] == '+' || expression[i] == '-' || expression[i] == '*' || expression[i] == '/')
+    // If the character is an operator
+    else if (expression[expressionIndex] == '+' || expression[expressionIndex] == '-' || expression[expressionIndex] == '*' || expression[expressionIndex] == '/')
     {
-
-      while (ops_top != -1 && getPrecedence(ops[ops_top]) >= getPrecedence(expression[i]))
+      while (operatorStackTop != -1 && getPrecedence(operatorStack[operatorStackTop]) >= getPrecedence(expression[expressionIndex]))
       {
-        if (values_top < 1)
+        if (valueStackTop < 1)
         {
           error = 1;
           break;
         }
-        int val2 = values[values_top--];
-        int val1 = values[values_top--];
-        char op = ops[ops_top--];
-        int res;
-        if (!applyOperation(val1, val2, op, &res, &error))
+        int secondOperand = valueStack[valueStackTop--];
+        int firstOperand = valueStack[valueStackTop--];
+        char poppedOperator = operatorStack[operatorStackTop--];
+        int operationResult;
+        if (!applyOperation(firstOperand, secondOperand, poppedOperator, &operationResult, &error))
         {
-          return;
+          return; // Exit if applyOperation failed (e.g., division by zero)
         }
-        values[++values_top] = res;
+        valueStack[++valueStackTop] = operationResult;
       }
       if (error)
+      {
         break;
-      ops[++ops_top] = expression[i];
+      }
+      operatorStack[++operatorStackTop] = expression[expressionIndex];
     }
+    // If the character is invalid
     else
     {
       error = 1;
@@ -109,31 +113,33 @@ void evaluateExpression(const char *expression)
     return;
   }
 
-  while (ops_top != -1)
+  // Apply remaining operators to the values in the stack
+  while (operatorStackTop != -1)
   {
-    if (values_top < 1)
+    if (valueStackTop < 1)
     {
       error = 1;
       break;
     }
-    int val2 = values[values_top--];
-    int val1 = values[values_top--];
-    char op = ops[ops_top--];
-    int res;
-    if (!applyOperation(val1, val2, op, &res, &error))
+    int secondOperand = valueStack[valueStackTop--];
+    int firstOperand = valueStack[valueStackTop--];
+    char poppedOperator = operatorStack[operatorStackTop--];
+    int operationResult;
+    if (!applyOperation(firstOperand, secondOperand, poppedOperator, &operationResult, &error))
     {
       return;
     }
-    values[++values_top] = res;
+    valueStack[++valueStackTop] = operationResult;
   }
 
-  if (error || values_top != 0 || ops_top != -1)
+  // Final check for a valid expression and print the result
+  if (error || valueStackTop != 0 || operatorStackTop != -1)
   {
     printf("Error: Invalid expression.\n");
   }
   else
   {
-    printf("%d\n", values[values_top]);
+    printf("%d\n", valueStack[valueStackTop]);
   }
 }
 
@@ -149,8 +155,6 @@ int main()
   }
   else
   {
-    // Handle cases where input is empty or just a newline
-    // which scanf would fail to read.
     printf("Error: Invalid expression.\n");
   }
 
