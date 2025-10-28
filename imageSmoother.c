@@ -107,9 +107,14 @@ void smoothImageMatrix(int **imageMatrix, int sizeOfMatrix)
             // update the image matrix cell with average of neighbors
             *(*(imageMatrix + imageRow) + imageColumn) = sumOfNeighbors / countOfNeighbors;
         }
+        // free the previous row elements array
+        free(previousRowElements);
         // copy current row elemnts to previous row
         previousRowElements = currentRowElements;
     }
+    // free the last PreviousRowElements allocatted memory
+    free(previousRowElements);
+    previousRowElements = NULL;
 }
 
 // helper method for printing the image matrix
@@ -120,7 +125,7 @@ void printImageMatrix(int **imageMatrix, int sizeOfMatrix)
         for (int imageColumn = 0; imageColumn < sizeOfMatrix; imageColumn++)
         {
             // print the cell of matrix
-            printf("%d ", *(*(imageMatrix + imageRow) + imageColumn));
+            printf("%3d ", *(*(imageMatrix + imageRow) + imageColumn));
         }
         // next line for next row
         printf("\n");
@@ -135,11 +140,24 @@ int main()
     scanf("%d", &sizeOfMatrix);
     // initializing image matrix array
     int **imageMatrix = (int **)malloc(sizeOfMatrix * sizeof(int *));
+    // check for memory allocation failure
+    if (imageMatrix == NULL)
+    {
+        printf("Memory allocation failed!\n");
+        return 0;
+    }
+
     int sizeOfInteger = sizeof(int);
     for (int matrixRow = 0; matrixRow < sizeOfMatrix; matrixRow++)
     {
         // initializing each row of matrix
         *(imageMatrix + matrixRow) = (int *)malloc(sizeOfMatrix * sizeOfInteger);
+        // check for memory allocation failure
+        if (*(imageMatrix + matrixRow) == NULL)
+        {
+            printf("Memory allocation failed!\n");
+            return 0;
+        }
     }
 
     // generate matrix
@@ -165,5 +183,13 @@ int main()
     printf("\n");
     printf("Matrix after Applying 3x3 Smoothing Filter:\n");
     printImageMatrix(imageMatrix, sizeOfMatrix);
+
+    // free allocated memory for image matrix
+    for (int matrixRow = 0; matrixRow < sizeOfMatrix; matrixRow++)
+    {
+        // free each row of matrix
+        free(*(imageMatrix + matrixRow));
+    }
+    free(imageMatrix);
     return 0;
 }
