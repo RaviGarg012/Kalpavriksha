@@ -20,14 +20,21 @@ int addNewProduct()
     // increase inventory size
     inventorySize++;
     // reallocate memory for inventory
-    productInventory = (struct Product *)realloc(productInventory, inventorySize * sizeof(struct Product));
+    // transfer the productInventory pointer to a temporary pointer to avoid memory leak in case of realloc failure
+    struct Product *temporaryInventory = NULL;
+    if (productInventory == NULL)
+        temporaryInventory = (struct Product *)malloc(inventorySize * sizeof(struct Product));
+    else
+        temporaryInventory = (struct Product *)realloc(productInventory, inventorySize * sizeof(struct Product));
 
     // check for memory allocation failure
-    if (productInventory == NULL)
+    if (temporaryInventory == NULL)
     {
         printf("Memory allocation failed!\n");
         return 1;
     }
+    // update the productInventory pointer
+    productInventory = temporaryInventory;
     // get the details for new product
     printf("Enter new product details:\n");
     printf("Product ID: ");
@@ -72,15 +79,24 @@ void updateQuantity()
     scanf("%d", &updateProductID);
     printf("Enter new quantity: ");
     scanf("%d", &newQuantity);
+    // product not found flag
+    int productNotFound = 1;
     // search for the product and update quantity
     for (int productIndex = 0; productIndex < inventorySize; productIndex++)
     {
         if (productInventory[productIndex].productID == updateProductID)
         {
+            productNotFound = 0;
             productInventory[productIndex].quantity = newQuantity;
             printf("Quantity updated successfully!\n");
             return;
         }
+    }
+
+    // if product not found
+    if (productNotFound)
+    {
+        printf("Product Not Found!\n");
     }
 }
 
@@ -197,12 +213,15 @@ int deleteProduct()
             // decrease inventory size
             inventorySize--;
             // reallocate memory for inventory
-            productInventory = (struct Product *)realloc(productInventory, inventorySize * sizeof(struct Product));
-            if (productInventory == NULL && inventorySize > 0)
+            // transfer the productInventory pointer to a temporary pointer to avoid memory leak in case of realloc failure
+            struct Product *temporaryInventory = (struct Product *)realloc(productInventory, inventorySize * sizeof(struct Product));
+            if (temporaryInventory == NULL && inventorySize > 0)
             {
                 printf("Memory reallocation failed!\n");
                 return 1;
             }
+            // update the productInventory pointer
+            productInventory = temporaryInventory;
             printf("Product deleted successfully!\n");
             return 0;
         }
@@ -214,6 +233,8 @@ int deleteProduct()
 
 int main()
 {
+    productInventory = NULL;
+    inventorySize = 0;
     // Take initial inventory size input
     printf("Enter the initial number of products: ");
     scanf("%d", &inventorySize);
