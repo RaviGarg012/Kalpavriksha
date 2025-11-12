@@ -132,3 +132,23 @@ void initializeTeams(Team allTeams[])
         addPlayerToTeam(&allTeams[teamId - 1], newPlayer);
     }
 }
+
+// helper method to display player details
+void displayPlayerDetails(PlayerDetail *player, int includeTeam)
+{
+    if (player == NULL)
+        return;
+    printf("%-6d %-20s ", player->playerId, player->playerName);
+    if (includeTeam)
+    {
+        printf("%-15s ", player->teamName);
+    }
+    printf("%-12s %-8d %-8.1f %-8.1f %-8d %-8.1f %-10.2f\n",
+           player->role,
+           player->totalRuns,
+           player->battingAverage,
+           player->strikeRate,
+           player->wickets,
+           player->economyRate,
+           player->performanceIndex);
+}

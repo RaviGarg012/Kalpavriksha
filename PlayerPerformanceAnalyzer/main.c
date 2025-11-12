@@ -73,6 +73,53 @@ void addPlayer()
     // success message
     printf("Player added successfully to Team %s!\n", teams[teamId - 1]);
 }
+
+// display players of a specific team
+void displayPlayers()
+{
+    int teamId;
+    printf("Enter Team ID: ");
+    scanf("%d", &teamId);
+    if (teamId < 1 || teamId > MAX_TEAM)
+    {
+        printf("Invalid Team ID! Please try again.\n");
+        return;
+    }
+    // display players of the team
+    Team selectedTeam = allTeams[teamId - 1];
+    printf("\nPlayers of Team %s:\n", selectedTeam.teamName);
+    printf("==================================================================================================\n");
+    printf("%-6s %-20s %-12s %-8s %-8s %-8s %-8s %-8s %-10s\n",
+           "ID", "Name", "Role", "Runs", "Avg", "SR", "Wkts", "ER", "Perf.Index");
+    printf("==================================================================================================\n");
+    PlayerDetail *currentPlayer;
+    // display batsmen
+    currentPlayer = selectedTeam.batsmenList;
+    while (currentPlayer != NULL)
+    {
+        displayPlayerDetails(currentPlayer, 0);
+        currentPlayer = currentPlayer->nextPlayer;
+    }
+    // display allrounders
+    currentPlayer = selectedTeam.allroundersList;
+    while (currentPlayer != NULL)
+    {
+        displayPlayerDetails(currentPlayer, 0);
+        currentPlayer = currentPlayer->nextPlayer;
+    }
+    // display bowlers
+    currentPlayer = selectedTeam.bowlersList;
+    while (currentPlayer != NULL)
+    {
+        displayPlayerDetails(currentPlayer, 0);
+        currentPlayer = currentPlayer->nextPlayer;
+    }
+    printf("==================================================================================================\n");
+
+    printf("Total Players: %d\n", selectedTeam.totalPlayers);
+    printf("Average Batting Strike Rate: %.2f\n", selectedTeam.averageBattingStrikerate);
+}
+
 void userInteraction()
 {
     // user input
@@ -100,6 +147,7 @@ void userInteraction()
             break;
         case 2:
             // Display Players of a Specific Team
+            displayPlayers();
             break;
         case 3:
             // Display Teams by Average Batting Strike Rate
@@ -161,10 +209,8 @@ int main()
 {
     // initialize teams from the provided data
     initializeTeams(allTeams);
-    displayTeamsSummary();
     // user interaction
     userInteraction();
-    displayTeamsSummary();
 
     // free allocated memory for players in each team
     freeAllTeams(allTeams);

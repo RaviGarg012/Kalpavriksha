@@ -34,4 +34,5 @@ typedef struct
 void initializeTeams(Team teams[]);
 void calculatePerformanceIndex(PlayerDetail *player);
 void addPlayerToTeam(Team *team, PlayerDetail *player);
+void displayPlayerDetails(PlayerDetail *player, int includeTeam);
 #endif
