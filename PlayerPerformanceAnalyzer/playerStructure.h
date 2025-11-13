@@ -35,4 +35,5 @@ void initializeTeams(Team teams[]);
 void calculatePerformanceIndex(PlayerDetail *player);
 void addPlayerToTeam(Team *team, PlayerDetail *player);
 void displayPlayerDetails(PlayerDetail *player, int includeTeam);
+void quickSortTeamsByStrikeRate(Team teams[], int teamIds[], int low, int high);
 #endif

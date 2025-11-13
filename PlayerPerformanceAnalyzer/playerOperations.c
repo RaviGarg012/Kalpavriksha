@@ -152,3 +152,41 @@ void displayPlayerDetails(PlayerDetail *player, int includeTeam)
            player->economyRate,
            player->performanceIndex);
 }
+
+// quicksort the teams according to batting average
+void quickSortTeamsByStrikeRate(Team teams[], int teamIds[], int low, int high)
+{
+    // base case
+    if (low >= high)
+        return;
+    // take the pivot element
+    int pivot = high;
+    int left = low - 1, right = high;
+    while (1)
+    {
+        // find element greater than pivot from left
+        do
+        {
+            left++;
+        } while (teams[teamIds[left]].averageBattingStrikerate > teams[teamIds[pivot]].averageBattingStrikerate);
+        // find element smaller than pivot from right
+        do
+        {
+            right--;
+        } while (right >= low && teams[teamIds[right]].averageBattingStrikerate < teams[teamIds[pivot]].averageBattingStrikerate);
+        // if pointers cross, break
+        if (left >= right)
+            break;
+        // swap the elements
+        int temp = teamIds[left];
+        teamIds[left] = teamIds[right];
+        teamIds[right] = temp;
+    }
+    // swap pivot to its correct position
+    int temp = teamIds[left];
+    teamIds[left] = teamIds[pivot];
+    teamIds[pivot] = temp;
+    // recursive calls
+    quickSortTeamsByStrikeRate(teams, teamIds, low, left - 1);
+    quickSortTeamsByStrikeRate(teams, teamIds, left + 1, high);
+}

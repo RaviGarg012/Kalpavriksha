@@ -120,6 +120,32 @@ void displayPlayers()
     printf("Average Batting Strike Rate: %.2f\n", selectedTeam.averageBattingStrikerate);
 }
 
+// helper method to display teams by average batting strike rate
+void displayTeamsByStrikeRate()
+{
+    // create an array of teams id and sort that
+    int teamIds[MAX_TEAM];
+    for (int teamIndex = 0; teamIndex < MAX_TEAM; teamIndex++)
+    {
+        teamIds[teamIndex] = teamIndex;
+    }
+    // sort team ids based on average batting strike rate using quick sort
+    quickSortTeamsByStrikeRate(allTeams, teamIds, 0, MAX_TEAM - 1);
+    printf("\nTeams Sorted by Average Batting Strike Rate:\n");
+    printf("==============================================================================\n");
+    printf("%-4s %-20s %-20s %-15s\n", "ID", "Team Name", "Avg Bat SR", "Total Players");
+    printf("==============================================================================\n");
+    for (int teamIndex = 0; teamIndex < MAX_TEAM; teamIndex++)
+    {
+        printf("%-4d %-20s %-20.2f %-15d\n",
+               teamIds[teamIndex] + 1,
+               allTeams[teamIds[teamIndex]].teamName,
+               allTeams[teamIds[teamIndex]].averageBattingStrikerate,
+               allTeams[teamIds[teamIndex]].totalPlayers);
+    }
+    printf("==============================================================================\n");
+}
+
 void userInteraction()
 {
     // user input
@@ -151,6 +177,7 @@ void userInteraction()
             break;
         case 3:
             // Display Teams by Average Batting Strike Rate
+            displayTeamsByStrikeRate();
             break;
         case 4:
             // Display Top K Players of a Specific Team by Role
