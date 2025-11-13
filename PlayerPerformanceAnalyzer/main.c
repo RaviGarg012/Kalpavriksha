@@ -146,6 +146,66 @@ void displayTeamsByStrikeRate()
     printf("==============================================================================\n");
 }
 
+// helper method to display top K players of a specific team by role
+void displayKPlayersByRole()
+{
+    int teamId, roleChoice, k;
+    // get team id
+    printf("Enter Team ID: ");
+    scanf("%d", &teamId);
+    if (teamId < 1 || teamId > MAX_TEAM)
+    {
+        printf("Invalid Team ID! Please try again.\n");
+        return;
+    }
+    // get role choice
+    printf("Enter Role (1-Batsman, 2-Bowler, 3-All-rounder): ");
+    scanf("%d", &roleChoice);
+    if (roleChoice < 1 || roleChoice > 3)
+    {
+        printf("Invalid role choice! Please try again.\n");
+        return;
+    }
+    // get number of players to display
+    printf("Enter number of players: ");
+    scanf("%d", &k);
+    if (k <= 0)
+    {
+        printf("Invalid number of players! Please try again.\n");
+        return;
+    }
+    // display top k players of the team by role
+    printf("\nTop %d %s of Team %s:\n", k, (roleChoice == 1) ? "Batsmen" : (roleChoice == 2) ? "Bowlers"
+                                                                                             : "All-rounders",
+           allTeams[teamId - 1].teamName);
+    printf("==================================================================================================\n");
+    printf("%-6s %-20s %-12s %-8s %-8s %-8s %-8s %-8s %-10s\n",
+           "ID", "Name", "Role", "Runs", "Avg", "SR", "Wkts", "ER", "Perf.Index");
+    printf("==================================================================================================\n");
+    // display top K players
+    PlayerDetail *player = NULL;
+    switch (roleChoice)
+    {
+    case 1:
+        player = allTeams[teamId - 1].batsmenList;
+        break;
+    case 2:
+        player = allTeams[teamId - 1].bowlersList;
+        break;
+    default:
+        player = allTeams[teamId - 1].allroundersList;
+        break;
+    }
+    int count = 0;
+    while (player != NULL && count < k)
+    {
+        displayPlayerDetails(player, 0);
+        player = player->nextPlayer;
+        count++;
+    }
+    printf("==================================================================================================\n");
+}
+
 void userInteraction()
 {
     // user input
@@ -181,6 +241,7 @@ void userInteraction()
             break;
         case 4:
             // Display Top K Players of a Specific Team by Role
+            displayKPlayersByRole();
             break;
         case 5:
             // Display all Players of specific role Across All Teams by performance index
