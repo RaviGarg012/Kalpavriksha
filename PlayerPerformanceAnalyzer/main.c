@@ -89,7 +89,7 @@ void displayPlayers()
     Team selectedTeam = allTeams[teamId - 1];
     printf("\nPlayers of Team %s:\n", selectedTeam.teamName);
     printf("==================================================================================================\n");
-    printf("%-6s %-20s %-12s %-8s %-8s %-8s %-8s %-8s %-10s\n",
+    printf("%-6s %-24s %-12s %-8s %-8s %-7s %-9s %-8s %-10s\n",
            "ID", "Name", "Role", "Runs", "Avg", "SR", "Wkts", "ER", "Perf.Index");
     printf("==================================================================================================\n");
     PlayerDetail *currentPlayer;
@@ -179,7 +179,7 @@ void displayKPlayersByRole()
                                                                                              : "All-rounders",
            allTeams[teamId - 1].teamName);
     printf("==================================================================================================\n");
-    printf("%-6s %-20s %-12s %-8s %-8s %-8s %-8s %-8s %-10s\n",
+    printf("%-6s %-24s %-12s %-8s %-8s %-7s %-9s %-8s %-10s\n",
            "ID", "Name", "Role", "Runs", "Avg", "SR", "Wkts", "ER", "Perf.Index");
     printf("==================================================================================================\n");
     // display top K players
@@ -204,6 +204,28 @@ void displayKPlayersByRole()
         count++;
     }
     printf("==================================================================================================\n");
+}
+
+// helper method to display players of all teams by role
+void displayPlayersByPerfIndex()
+{
+    int roleChoice;
+    printf("Enter Role (1-Batsman, 2-Bowler, 3-All-rounder): ");
+    scanf("%d", &roleChoice);
+    if (roleChoice < 1 || roleChoice > 3)
+    {
+        printf("Invalid role choice! Please try again.\n");
+        return;
+    }
+    printf("%s of all teams:\n", (roleChoice == 1) ? "Batsmen" : (roleChoice == 2) ? "Bowlers"
+                                                                                   : "All-rounders");
+    printf("=======================================================================================================================\n");
+    printf("%-6s %-24s %-16s %-11s %-8s %-8s %-7s %-9s %-8s %-10s\n",
+           "ID", "Name", "Team", "Role", "Runs", "Avg", "SR", "Wkts", "ER", "Perf.Index");
+    printf("=======================================================================================================================\n");
+
+    displaySortPlayerByRole(allTeams, roleChoice);
+    printf("=======================================================================================================================\n");
 }
 
 void userInteraction()
@@ -245,6 +267,7 @@ void userInteraction()
             break;
         case 5:
             // Display all Players of specific role Across All Teams by performance index
+            displayPlayersByPerfIndex();
             break;
         case 6:
             // Exit

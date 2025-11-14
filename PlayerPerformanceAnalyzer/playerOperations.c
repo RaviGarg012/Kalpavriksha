@@ -138,7 +138,7 @@ void displayPlayerDetails(PlayerDetail *player, int includeTeam)
 {
     if (player == NULL)
         return;
-    printf("%-6d %-20s ", player->playerId, player->playerName);
+    printf("%-6d %-24s ", player->playerId, player->playerName);
     if (includeTeam)
     {
         printf("%-15s ", player->teamName);
@@ -189,4 +189,101 @@ void quickSortTeamsByStrikeRate(Team teams[], int teamIds[], int low, int high)
     // recursive calls
     quickSortTeamsByStrikeRate(teams, teamIds, low, left - 1);
     quickSortTeamsByStrikeRate(teams, teamIds, left + 1, high);
+}
+
+// helper method to heapify the max heap
+void heapify(HeapNode **heap, int heapSize, int index)
+{
+    int largest = index;
+    int leftChild = 2 * index + 1;
+    int rightChild = 2 * index + 2;
+    // check if left child is larger than root
+    if (leftChild < heapSize && (*heap)[leftChild].player->performanceIndex > (*heap)[largest].player->performanceIndex)
+    {
+        largest = leftChild;
+    }
+    // check if right child is larger than largest so far
+    if (rightChild < heapSize && (*heap)[rightChild].player->performanceIndex > (*heap)[largest].player->performanceIndex)
+    {
+        largest = rightChild;
+    }
+
+    // if largest is not root
+    if (largest != index)
+    {
+        // swap
+        HeapNode temp = (*heap)[index];
+        (*heap)[index] = (*heap)[largest];
+        (*heap)[largest] = temp;
+
+        // recursively heapify the affected sub-tree
+        heapify(heap, heapSize, largest);
+    }
+}
+
+// helper method to build max heap
+void buildMaxHeap(HeapNode **heap, int heapSize)
+{
+    for (int index = (heapSize / 2) - 1; index >= 0; index--)
+    {
+        // heapify each node
+        heapify(heap, heapSize, index);
+    }
+}
+
+// helper to display sorted players by role using max heap
+void displaySortPlayerByRole(Team allTeams[], int roleChoice)
+{
+    HeapNode *heap = (HeapNode *)malloc(teamCount * sizeof(HeapNode));
+    int heapSize = 0;
+    // create array to store players of specific roles
+    for (int index = 0; index < teamCount; index++)
+    {
+        PlayerDetail *playerHead = NULL;
+        // add player to heap based on role
+        if (roleChoice == 1)
+            playerHead = allTeams[index].batsmenList;
+        else if (roleChoice == 2)
+            playerHead = allTeams[index].bowlersList;
+        else
+            playerHead = allTeams[index].allroundersList;
+
+        // initialize heap node
+        if (playerHead != NULL)
+        {
+            heap[index].player = playerHead;
+            heap[index].teamIndex = index;
+            heapSize++;
+        }
+        else
+        {
+            heap[index].player = NULL;
+            heap[index].teamIndex = -1;
+        }
+    }
+
+    buildMaxHeap(&heap, heapSize);
+    // get the root of heap and print the data
+    while (heapSize > 0)
+    {
+        // get the player with highest performance index
+        HeapNode topNode = heap[0];
+        displayPlayerDetails(topNode.player, 1);
+        // move to the next player
+        if (topNode.player->nextPlayer != NULL)
+        {
+            heap[0].player = topNode.player->nextPlayer;
+        }
+        else
+        {
+            // replace root with last element
+            heap[0] = heap[heapSize - 1];
+            heapSize--;
+        }
+        // heapify the root
+        heapify(&heap, heapSize, 0);
+    }
+
+    // free allocated memory for heap
+    free(heap);
 }
