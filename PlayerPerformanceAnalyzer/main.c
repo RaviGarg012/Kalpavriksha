@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 // importing structure of players
-#include "PlayerStructure.h"
-#include "Players_data.h"
+#include "playerStructure.h"
+#include "players_data.h"
 #define MAX_TEAM 10
 
 Team allTeams[MAX_TEAM] = {0};
