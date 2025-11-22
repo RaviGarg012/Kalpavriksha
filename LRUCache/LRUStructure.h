@@ -1,14 +1,15 @@
 #ifndef LRUStructure_H
 #define LRUStructure_H
 #define MAX_SIZE 100
+#define MAX_TOKEN_VALUE 20
 // queue node
 typedef struct Queue
 {
     int key;
     char *value;
     // double link
-    Queue *prevNode;
-    Queue *nextNode;
+    struct Queue *prevNode;
+    struct Queue *nextNode;
 } Queue;
 
 // hash node
@@ -16,7 +17,7 @@ typedef struct HashNode
 {
     int key;
     Queue *queueNode;
-    HashNode *next;
+    struct HashNode *next;
 } HashNode;
 
 // hashmap structure

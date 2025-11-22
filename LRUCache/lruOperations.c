@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 // import lru structure
 #include "LRUStructure.h"
 
@@ -41,11 +42,13 @@ void updateQueue(Queue *node)
     {
         // set tail to its prev
         queueTail = queueTail->prevNode;
-        queueTail->nextNode = NULL;
+        if (queueTail)
+            queueTail->nextNode = NULL;
         // set node prev to NULL
         node->prevNode = NULL;
         // add node to head
         node->nextNode = queueHead;
+        queueHead->prevNode = node;
         queueHead = node;
         return;
     }
@@ -57,10 +60,32 @@ void updateQueue(Queue *node)
     // set its prev to NULL
     node->prevNode = NULL;
     node->nextNode = queueHead;
+    queueHead->prevNode = node;
     // update queueHead
     queueHead = node;
 }
 
+// helper method creating a new queueNode
+Queue *createQNode(int key, char *value)
+{
+    Queue *newNode = (Queue *)malloc(sizeof(Queue));
+    newNode->key = key;
+    newNode->value = (char *)malloc(MAX_TOKEN_VALUE);
+    strcpy(newNode->value, value);
+    newNode->prevNode = NULL;
+    newNode->nextNode = NULL;
+    return newNode;
+}
+
+// helper method to create a new HashNode
+HashNode *createHNode(int key, Queue *qNode)
+{
+    HashNode *hNode = (HashNode *)malloc(sizeof(HashNode));
+    hNode->key = key;
+    hNode->queueNode = qNode;
+    hNode->next = NULL;
+    return hNode;
+}
 // getting queue node from hashmap
 Queue *get(int key)
 {
@@ -80,4 +105,113 @@ Queue *get(int key)
         current = current->next;
     }
     return NULL;
+}
+
+// helper method to add new node in queue and hashMap
+void addNewNode(int key, char *value)
+{
+    // first get the index for that key
+    int index = getIndex(key);
+    // create new queue node
+    Queue *qNode = createQNode(key, value);
+    // create new hashnode
+    HashNode *hNode = createHNode(key, qNode);
+
+    // add qNode at head of queue
+    if (queueHead == NULL)
+    {
+        queueHead = queueTail = qNode;
+    }
+    else
+    {
+        qNode->nextNode = queueHead;
+        queueHead->prevNode = qNode;
+        // update head
+        queueHead = qNode;
+    }
+
+    /// add that hNode to head of the index in table of hashmap
+    hNode->next = hashMap->table[index];
+    hashMap->table[index] = hNode;
+    // update no of element in the hashmap
+    hashMap->noOfElements++;
+}
+
+// helper method to delete the hashnode in hashmap
+void deleteHashNode(int key)
+{
+    // get the index
+    int index = getIndex(key);
+    // get the head of theat idnex
+    HashNode *current = hashMap->table[index];
+    HashNode *prev = NULL;
+    while (current != NULL)
+    {
+        if (current->key == key)
+        {
+            if (prev == NULL)
+            {
+                // for first node
+                hashMap->table[index] = current->next;
+            }
+            else
+            {
+                // set prev next to curr next
+                prev->next = current->next;
+            }
+            free(current);
+            // update no of elements
+            hashMap->noOfElements--;
+            return;
+        }
+        // update prev and curr
+        prev = current;
+        current = current->next;
+    }
+}
+
+// helper method to delete the least used node from the queue and hashMap
+void deleteLeastUsedNode()
+{
+    if (queueTail == NULL)
+        return;
+    // get the node at the tail of queue
+    Queue *leastNode = queueTail;
+    // update queueTail
+    queueTail = queueTail->prevNode;
+    if (queueTail)
+        queueTail->nextNode = NULL;
+
+    // set prev of least node to null
+    leastNode->prevNode = NULL;
+    // get the key for least node
+    int key = leastNode->key;
+    // delete hashNode at that key
+    deleteHashNode(key);
+
+    // free the memory for least Node
+    free(leastNode->value);
+    free(leastNode);
+}
+
+// put method
+void put(int key, char *value)
+{
+    // get the queue node from hashmap if key is already present
+    Queue *newNode = get(key);
+    // if node is not null then update value on that key
+    if (newNode)
+    {
+        strcpy(newNode->value, value);
+        return;
+    }
+
+    // node is NULL then its add new node to queue and hashmap
+    addNewNode(key, value);
+
+    // check the capacity condition
+    if (hashMap->noOfElements > hashMap->capacity)
+    {
+        deleteLeastUsedNode();
+    }
 }
