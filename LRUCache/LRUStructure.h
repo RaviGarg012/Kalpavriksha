@@ -16,6 +16,7 @@ typedef struct HashNode
 {
     int key;
     Queue *queueNode;
+    HashNode *next;
 } HashNode;
 
 // hashmap structure
