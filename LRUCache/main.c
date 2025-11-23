@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 // import lru structure
 #include "LRUStructure.h"
 #define MAX_LINE 100
@@ -54,6 +55,12 @@ void userInteraction()
                 printf("NULL\n");
             }
         }
+        // exit command
+        else if (sscanf(line, "%s", command) == 1 && strcmp(command, "exit") == 0)
+        {
+            // stop loop
+            break;
+        }
         // invalid command
         else
         {
@@ -65,5 +72,7 @@ int main()
 {
     // user interaction
     userInteraction();
+    // free allocated memeory
+    freeMemory();
     return 0;
 }

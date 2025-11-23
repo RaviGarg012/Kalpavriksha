@@ -13,12 +13,23 @@ void createLRUCache(int capacity)
     queueHead = NULL;
     queueTail = NULL;
     hashMap = (HashMap *)malloc(sizeof(HashMap));
+    // allcation failed
+    if (hashMap == NULL)
+    {
+        printf("Memory Allocation Failed!");
+        exit(1);
+    }
     // set capacity
     hashMap->capacity = capacity;
     // set no of elements to zero
     hashMap->noOfElements = 0;
     // set all the node in the table to NULL
     hashMap->table = (HashNode **)malloc(MAX_SIZE * sizeof(HashNode *));
+    if (hashMap->table == NULL)
+    {
+        printf("Memory Allocation Failed!");
+        exit(1);
+    }
     for (int tableIndex = 0; tableIndex < MAX_SIZE; tableIndex++)
     {
         hashMap->table[tableIndex] = NULL;
@@ -69,8 +80,18 @@ void updateQueue(Queue *node)
 Queue *createQNode(int key, char *value)
 {
     Queue *newNode = (Queue *)malloc(sizeof(Queue));
+    if (newNode == NULL)
+    {
+        printf("Memory Allocation Failed!");
+        exit(1);
+    }
     newNode->key = key;
     newNode->value = (char *)malloc(MAX_TOKEN_VALUE);
+    if (newNode->value == NULL)
+    {
+        printf("Memory Allocation Failed!");
+        exit(1);
+    }
     strcpy(newNode->value, value);
     newNode->prevNode = NULL;
     newNode->nextNode = NULL;
@@ -81,6 +102,11 @@ Queue *createQNode(int key, char *value)
 HashNode *createHNode(int key, Queue *qNode)
 {
     HashNode *hNode = (HashNode *)malloc(sizeof(HashNode));
+    if (hNode == NULL)
+    {
+        printf("Memory Allocation Failed!");
+        exit(1);
+    }
     hNode->key = key;
     hNode->queueNode = qNode;
     hNode->next = NULL;
@@ -214,4 +240,55 @@ void put(int key, char *value)
     {
         deleteLeastUsedNode();
     }
+}
+
+// free memory for queue
+void freeQueue()
+{
+    // node at head
+    Queue *current = queueHead, *next = NULL;
+    while (current != NULL)
+    {
+        next = current->nextNode;
+        // free current node
+        free(current->value);
+        free(current);
+        current = next;
+    }
+    /// queue head and tail to null
+    queueHead = queueTail = NULL;
+}
+
+// free hashmap
+void freeHashMap()
+{
+    // traverse through all the index and node at the hashmap and free the memory
+    HashNode *current = NULL, *next = NULL;
+    for (int tableIndex = 0; tableIndex < MAX_SIZE; tableIndex++)
+    {
+        current = hashMap->table[tableIndex];
+        // traverse the list
+        while (current)
+        {
+            // set next value
+            next = current->next;
+            // free current
+            free(current);
+            current = next;
+        }
+    }
+
+    // free hashmap
+    free(hashMap->table);
+    free(hashMap);
+    hashMap = NULL;
+}
+
+// method for deallocating the memory after all the operations
+void freeMemory()
+{
+    // first free memory for queue
+    freeQueue();
+    // then free memory for hashmap
+    freeHashMap();
 }

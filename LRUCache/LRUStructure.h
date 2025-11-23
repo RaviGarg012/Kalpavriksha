@@ -32,4 +32,5 @@ typedef struct HashMap
 void createLRUCache(int capacity);
 Queue *get(int key);
 void put(int key, char *value);
+void freeMemory();
 #endif
