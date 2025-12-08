@@ -10,7 +10,7 @@ typedef struct ProcessControlBlock
     int burstTime;
     int IOTime;
     int IODuration;
-    // 0 - New, 1 - Ready, 2 - Running, 3 - Waiting, 4 - Terminated, 5 - Killed
+    // 0 - Ready, 1 - Running, 2 - Waiting, 3 - Terminated, 4 - Killed
     int state;
     int turnAroundTime;
     // next block
@@ -28,6 +28,8 @@ typedef struct HashMap
 typedef struct QueueNode
 {
     int processID;
+    // kill time (only for kill queue)
+    int killTime; // -1 for other than kill queue
     struct QueueNode *next;
 } QueueNode;
 
@@ -37,6 +39,13 @@ typedef struct Queue
     QueueNode *rear;
     int size;
 } Queue;
+
+// global variables
+HashMap *processMap;
+Queue *readyQueue;
+Queue *IOWaitingQueue;
+Queue *TerminatedQueue;
+Queue *KillEventQueue;
 
 // function prototypes
 void initializeStructures();
