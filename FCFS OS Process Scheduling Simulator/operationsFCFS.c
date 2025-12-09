@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "processStructure.h"
 
 // helper method to intialize a queue
@@ -43,6 +44,9 @@ void initializeStructures()
 
     // allocate memory for kill event queue
     KillEventQueue = getQueue();
+
+    // initialize time unit
+    TimeUnit = 0;
 }
 
 // hash function to get the bucket index
@@ -89,6 +93,39 @@ void enqueueProcess(Queue *queue, int processID, int killTime)
     queue->size++;
 }
 
+// helper method to deque a node from a queue
+ProcessControlBlock *dequeue(Queue *queue)
+{
+    if (queue->rear == NULL)
+        return NULL;
+
+    // get the front node
+    QueueNode *temp = queue->front;
+    ProcessControlBlock *pcb = NULL;
+    // get the process control block from the hash map
+    int bucketIndex = getHash(temp->processID);
+    pcb = processMap->table[bucketIndex];
+    while (pcb != NULL)
+    {
+        if (pcb->processID == temp->processID)
+        {
+            break;
+        }
+        pcb = pcb->next;
+    }
+    // move the front pointer to the next node
+    queue->front = queue->front->next;
+    // if the front becomes NULL, then change rear also as NULL
+    if (queue->front == NULL)
+    {
+        queue->rear = NULL;
+    }
+    queue->size--;
+    // free the memory of the dequeued node
+    free(temp);
+    return pcb;
+}
+
 // helper method to add a process to the hash map and ready queue
 void addProcess(char processName[], int processID, int burstTime, int IOTime, int IODuration)
 {
@@ -102,10 +139,12 @@ void addProcess(char processName[], int processID, int burstTime, int IOTime, in
     newPCB->processID = processID;
     strcpy(newPCB->processName, processName);
     newPCB->burstTime = burstTime;
-    newPCB->IOTime = IOTime;
+    newPCB->IOTime = IOTime == 0 ? -1 : IOTime;
     newPCB->IODuration = IODuration;
     newPCB->state = 0; // Ready
+    newPCB->waitingTime = -burstTime;
     newPCB->turnAroundTime = 0;
+    newPCB->IOEndTime = IODuration;
     newPCB->next = NULL;
 
     // add the process to the hash map

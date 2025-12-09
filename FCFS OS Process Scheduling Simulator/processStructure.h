@@ -12,6 +12,8 @@ typedef struct ProcessControlBlock
     int IODuration;
     // 0 - Ready, 1 - Running, 2 - Waiting, 3 - Terminated, 4 - Killed
     int state;
+    int IOEndTime;
+    int waitingTime;
     int turnAroundTime;
     // next block
     struct ProcessControlBlock *next;
@@ -46,12 +48,14 @@ Queue *readyQueue;
 Queue *IOWaitingQueue;
 Queue *TerminatedQueue;
 Queue *KillEventQueue;
+int TimeUnit;
 
 // function prototypes
 void initializeStructures();
 void addProcess(char processName[], int processID, int burstTime, int IOTime, int IODuration);
 void addKillEvent(int processID, int killTime);
-void simulateFCFS();
+void enqueueProcess(Queue *queue, int processID, int killTime);
+ProcessControlBlock *dequeue(Queue *queue);
 void displayResults();
 void freeMemory();
 
