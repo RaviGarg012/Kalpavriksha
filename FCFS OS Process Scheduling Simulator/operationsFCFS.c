@@ -229,3 +229,94 @@ void killProcess(ProcessControlBlock **CPUProcess, ProcessControlBlock **IOProce
     // check IO queue for the process
     deleteProcess(IOWaitingQueue, killPCB->processID);
 }
+
+// helper method to display results
+void displayResults()
+{
+    printf("%-10s %-10s %-10s %-10s %-20s %-15s %-10s\n", "PID", "Name", "CPU", "IO", "Status", "Turnaround", "Waiting");
+    QueueNode *current = TerminatedQueue->front;
+    while (current != NULL)
+    {
+        int processID = current->processID;
+        // get the pcb from the hash map
+        int bucketIndex = getHash(processID);
+        ProcessControlBlock *pcb = processMap->table[bucketIndex];
+        while (pcb != NULL)
+        {
+            if (pcb->processID == processID)
+            {
+                break;
+            }
+            pcb = pcb->next;
+        }
+        if (pcb != NULL)
+        {
+            // prepare status string
+            char statusStr[20];
+            if (pcb->state == 3)
+                strcpy(statusStr, "OK");
+            else
+                sprintf(statusStr, "KILLED at %d", current->killTime);
+            // print the results
+            printf("%-10d %-10s %-10d %-10d %-20s %-15d %-10d\n",
+                   pcb->processID,
+                   pcb->processName,
+                   -pcb->waitingTime,
+                   pcb->IODuration,
+                   statusStr,
+                   (pcb->state == 3) ? pcb->turnAroundTime : 0,
+                   (pcb->state == 3) ? (pcb->waitingTime + pcb->turnAroundTime) : 0);
+        }
+        current = current->next;
+    }
+}
+
+// helper method to free a queue
+void freeQueue(Queue *queue)
+{
+    QueueNode *current = queue->front;
+    QueueNode *nextNode;
+    while (current != NULL)
+    {
+        nextNode = current->next;
+        free(current);
+        current = nextNode;
+    }
+    // front and rear to NULL
+    queue->front = NULL;
+    queue->rear = NULL;
+    free(queue);
+}
+
+// helper method to free allocated memory for all structures
+void freeMemory()
+{
+    // free process map
+    for (int bucketIndex = 0; bucketIndex < MAP_SIZE; bucketIndex++)
+    {
+        ProcessControlBlock *pcb = processMap->table[bucketIndex];
+        while (pcb != NULL)
+        {
+            ProcessControlBlock *temp = pcb;
+            pcb = pcb->next;
+            free(temp);
+        }
+    }
+    free(processMap);
+    processMap = NULL;
+
+    // free queues
+    freeQueue(readyQueue);
+    freeQueue(IOWaitingQueue);
+    freeQueue(TerminatedQueue);
+    freeQueue(KillEventQueue);
+
+    // set queues to NULL
+    readyQueue = NULL;
+    IOWaitingQueue = NULL;
+    TerminatedQueue = NULL;
+    KillEventQueue = NULL;
+
+    // set time unit to 0
+    TimeUnit = 0;
+}
