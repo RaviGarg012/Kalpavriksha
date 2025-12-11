@@ -56,6 +56,7 @@ void addProcess(char processName[], int processID, int burstTime, int IOTime, in
 void addKillEvent(int processID, int killTime);
 void enqueueProcess(Queue *queue, int processID, int killTime);
 ProcessControlBlock *dequeue(Queue *queue);
+void killProcess(ProcessControlBlock **CPUProcess, ProcessControlBlock **IOProcess);
 void displayResults();
 void freeMemory();
 

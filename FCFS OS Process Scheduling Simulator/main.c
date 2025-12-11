@@ -14,8 +14,8 @@ void userInput()
     {
         // read the command
         scanf("%s", command);
-        // if the command is exit, break the loop
-        if (strcmp(command, "exit") == 0)
+        // if the command is end, break the loop
+        if (strcmp(command, "end") == 0)
         {
             break;
         }
@@ -36,6 +36,22 @@ void userInput()
     }
 }
 
+// get the cpu prcess from the ready queue
+ProcessControlBlock *getCPUProcess()
+{
+    ProcessControlBlock *cpu = dequeue(readyQueue);
+    if (cpu != NULL && cpu->IOTime > 0)
+    {
+        cpu->state = 1; // Running
+        if (cpu->IOTime > 0)
+        {
+            cpu->IOTime += TimeUnit;
+            cpu->IOEndTime += cpu->IOTime;
+        }
+    }
+    return cpu;
+}
+
 // increase the time unit by 1
 void incrementTimeUnit()
 {
@@ -54,55 +70,38 @@ void simulateFCFS()
     // loop until all processes are terminated
     while (TerminatedQueue->size != processMap->noOfElements)
     {
+        // kill the process if any
+        if (KillEventQueue->front != NULL && KillEventQueue->front->killTime == TimeUnit)
+        {
+            // kill the process
+            killProcess(&CPUProcess, &IOProcess);
+        }
         // operation for cpu process
         // starting condition
         if (CPUProcess == NULL)
         {
             // dequeue next process
-            CPUProcess = dequeue(readyQueue);
-            if (CPUProcess != NULL && CPUProcess->IOTime > 0)
-            {
-                CPUProcess->state = 1;
-                CPUProcess->IOTime += TimeUnit;
-                CPUProcess->IOEndTime += CPUProcess->IOTime;
-            }
+            CPUProcess = getCPUProcess();
         }
         // IO burst condition
         else if (CPUProcess->IOTime == TimeUnit)
         {
             CPUProcess->state = 2;
             enqueueProcess(IOWaitingQueue, CPUProcess->processID, -1);
-            CPUProcess = dequeue(readyQueue);
-            // dequeue next process
-            if (CPUProcess != NULL && CPUProcess->IOTime > 0)
-            {
-                CPUProcess->state = 1;
-                CPUProcess->IOTime += TimeUnit;
-                CPUProcess->IOEndTime += CPUProcess->IOTime;
-            }
+            CPUProcess = getCPUProcess();
         }
         // completion condition
-        else if (CPUProcess->burstTime == 0)
+        else if (CPUProcess->burstTime <= 0)
         {
             CPUProcess->state = 3;
-            // calculate turn around time and waiting time
-            printf("Process %s completed at time %d\n", CPUProcess->processName, TimeUnit);
             CPUProcess->turnAroundTime = TimeUnit;
-            CPUProcess->waitingTime += TimeUnit;
             // move to terminated queue
-
             enqueueProcess(TerminatedQueue, CPUProcess->processID, -1);
             // dequeue next process
-            CPUProcess = dequeue(readyQueue);
-            if (CPUProcess != NULL && CPUProcess->IOTime > 0)
-            {
-                CPUProcess->state = 1;
-                CPUProcess->IOTime += TimeUnit;
-                CPUProcess->IOEndTime += CPUProcess->IOTime;
-            }
+            CPUProcess = getCPUProcess();
         }
         // decrement the burst time
-        else
+        if (CPUProcess != NULL && CPUProcess->burstTime > 0)
         {
             CPUProcess->burstTime--;
         }
@@ -123,7 +122,17 @@ void simulateFCFS()
             IOProcess->state = 0;
             IOProcess->IOTime = -1; // IO completed
             // add back to ready queue
-            enqueueProcess(readyQueue, IOProcess->processID, -1);
+            if (CPUProcess == NULL)
+            {
+                CPUProcess = IOProcess;
+                CPUProcess->state = 1;
+                // decrement burst time for this time unit
+                CPUProcess->burstTime--;
+            }
+            else
+            {
+                enqueueProcess(readyQueue, IOProcess->processID, -1);
+            }
             // dequeue next IO process
             IOProcess = dequeue(IOWaitingQueue);
             if (IOProcess != NULL)

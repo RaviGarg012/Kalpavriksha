@@ -139,7 +139,7 @@ void addProcess(char processName[], int processID, int burstTime, int IOTime, in
     newPCB->processID = processID;
     strcpy(newPCB->processName, processName);
     newPCB->burstTime = burstTime;
-    newPCB->IOTime = IOTime == 0 ? -1 : IOTime;
+    newPCB->IOTime = IOTime;
     newPCB->IODuration = IODuration;
     newPCB->state = 0; // Ready
     newPCB->waitingTime = -burstTime;
@@ -159,4 +159,73 @@ void addKillEvent(int processID, int killTime)
 {
     // add process in the Kill queue
     enqueueProcess(KillEventQueue, processID, killTime);
+}
+
+// helper method to delete a prcess from a queue
+int deleteProcess(Queue *queue, int processID)
+{
+    if (queue->front == NULL)
+        return -1;
+
+    QueueNode *curr = queue->front;
+    QueueNode *prev = NULL;
+    while (curr != NULL)
+    {
+        if (curr->processID == processID)
+        {
+            QueueNode *temp = curr;
+            // if the first node is match
+            if (prev == NULL)
+            {
+                queue->front = curr->next;
+            }
+            else
+            {
+                prev->next = curr->next;
+            }
+            if (curr == queue->rear)
+            {
+                queue->rear = prev;
+            }
+            free(temp);
+            return 1;
+        }
+        prev = curr;
+        curr = curr->next;
+    }
+    return 0;
+}
+
+// helper method to kill a process
+void killProcess(ProcessControlBlock **CPUProcess, ProcessControlBlock **IOProcess)
+{
+    // dequeue process that should kill
+    ProcessControlBlock *killPCB = dequeue(KillEventQueue);
+    // add kill pcb pid to terminated queue
+    if (killPCB->state == 3)
+    {
+        return;
+    }
+    killPCB->state = 4;
+    enqueueProcess(TerminatedQueue, killPCB->processID, TimeUnit);
+    // first check cpu process
+    if (killPCB == (*CPUProcess))
+    {
+        (*CPUProcess) = NULL;
+        return;
+    }
+    // then io process
+    if (killPCB == (*IOProcess))
+    {
+        (*IOProcess) = NULL;
+        return;
+    }
+
+    // check the ready queue for the process
+    if (deleteProcess(readyQueue, killPCB->processID))
+    {
+        return;
+    }
+    // check IO queue for the process
+    deleteProcess(IOWaitingQueue, killPCB->processID);
 }
